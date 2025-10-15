@@ -1,3 +1,15 @@
+
+
+function startNewChat() {
+  chatContainer.innerHTML = "";
+  currentChat = [];
+  chatCounter++;
+  chatSessionId = `chat_${Date.now()}_${chatCounter}`;
+  const li = document.createElement("li");
+  li.textContent = `Chat ${chatCounter}: New Session`;
+  chatHistory.appendChild(li);
+}
+
 // Restriction: Only coding questions allowed
 function isCodingRelated(message) {
     const allowedTopics = [
@@ -40,3 +52,29 @@ async function getAIResponse(userMessage) {
         return { reply: "⚠️ Error connecting to the AI server.", responseTime: "N/A" };
     }
 }
+
+// SEND MESSAGE HANDLER
+async function sendMessage() {
+  const userMessage = userInput.value.trim();
+  if (!userMessage) return;
+
+  displayMessage("user", userMessage);
+  currentChat.push({ sender: "user", text: userMessage });
+  userInput.value = "";
+
+  // Show typing indicator
+  const typingDiv = document.createElement("div");
+  typingDiv.classList.add("ai-message");
+  typingDiv.innerHTML = "<em>AI is typing...</em>";
+  chatContainer.appendChild(typingDiv);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+
+  // Get AI response
+  const aiReply = await getAIResponse(userMessage);
+
+  // Remove typing indicator and display AI message
+  typingDiv.remove();
+  displayMessage("ai", aiReply);
+  currentChat.push({ sender: "ai", text: aiReply });
+}
+
