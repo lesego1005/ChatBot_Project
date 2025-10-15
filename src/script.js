@@ -2,7 +2,7 @@
 function isCodingRelated(message) {
     const allowedTopics = [
         "code", "coding", "programming", "developer", "software",
-        "algorithm","api", "debug" , "bug" , "function" , "class" , "html", "css", "javascript",
+        "algorithm", "api", "debug" , "bug" , "function" , "class" , "html", "css", "javascript",
         "python", "java", "c#", "c++
     ];
     return allowedTopics.some(topic => message.toLowerCase().includes(topic));
