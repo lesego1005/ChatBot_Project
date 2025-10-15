@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
-// 🎯 IMPORTANT: Use the official Google GenAI SDK for chat management
+// Use of the official Google GenAI SDK for chat management
 import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
@@ -22,17 +22,13 @@ const __dirname = path.dirname(__filename);
 // 🎯 Chat Sessions Map: Stores active conversations by sessionId
 const chatSessions = new Map();
 
-// ============================
 // Middleware
-// ============================
 app.use(cors());
 app.use(express.json());
 // Serve static files (HTML, CSS, JS) from the 'src' directory
 app.use(express.static(path.join(__dirname, "src")));
 
-// ============================
 // Gemini Chat API Endpoint
-// ============================
 app.post("/api/chat", async (req, res) => {
     try {
         const { message, sessionId } = req.body;
@@ -69,17 +65,13 @@ app.post("/api/chat", async (req, res) => {
     }
 });
 
-// ============================
 // Serve index.html
-// ============================
 app.get("/", (req, res) => {
     // Serves the HTML file when the root URL is accessed
     res.sendFile(path.join(__dirname, "src", "index.html"));
 });
 
-// ============================
 // Start Server
-// ============================
 app.listen(port, () => {
     console.log(`🚀 Server running on http://localhost:${port}`);
 });
