@@ -9,37 +9,49 @@ const chatModalPage = document.getElementById("chatModal");
 const bodyContent = document.getElementById("the-body");
 
 let allChats = JSON.parse(localStorage.getItem("chatHistory")) || [];
-let currentChat = [];
+let currentChat = null;
 
-// new chat functonality //
+// === Start New Chat ===
 newChatButton.addEventListener("click", function () {
-  chatModalPage.style.display = "block";
+  currentChat = {
+    id: Date.now(),
+    title: `Chat ${allChats.length + 1}`,
+    messages: [],
+  };
+
+  allChats.push(currentChat);
+  saveAllChats();
+
   chatBox.innerHTML = "";
-  currentChat = [];
-  addChatCard();
-  console.log("New chat started");
+  renderChatCards();
+  chatModalPage.style.display = "block";
 });
 
-// modal close //
+// === Close Modal ===
 closeModalButton.addEventListener("click", function () {
   chatModalPage.style.display = "none";
 });
 
-// new card rendered for chat history //
-function addChatCard() {
-  const historyCard = document.createElement("div");
-  historyCard.classList.add("text-box");
-  const chatNumber = allChats.length + 1;
-  historyCard.textContent = `Chat ${chatNumber}`;
-  bodyContent.appendChild(historyCard);
+// === Render Chat Cards ===
+function renderChatCards() {
+  document.querySelectorAll(".text-box").forEach((el) => el.remove());
 
-  historyCard.addEventListener("click", function () {
-    chatModalPage.style.display = "block";
-    loadChat(allChats[chatNumber - 1]);
+  allChats.forEach((chat) => {
+    const historyCard = document.createElement("div");
+    historyCard.classList.add("text-box");
+    historyCard.textContent = chat.title;
+    bodyContent.appendChild(historyCard);
+
+    // Open existing chat
+    historyCard.addEventListener("click", function () {
+      currentChat = chat;
+      chatModalPage.style.display = "block";
+      loadChat(chat);
+    });
   });
 }
 
-// send message //
+// === Send Message ===
 sendChatButton.addEventListener("click", handleSend);
 userInputField.addEventListener("keypress", function (e) {
   if (e.key === "Enter") handleSend();
@@ -47,15 +59,23 @@ userInputField.addEventListener("keypress", function (e) {
 
 function handleSend() {
   const userMessage = userInputField.value.trim();
-  if (!userMessage) return;
+  if (!userMessage || !currentChat) return;
 
   displayMessage(userMessage, "user-message");
-  currentChat.push({ sender: "user", text: userMessage });
+  currentChat.messages.push({ sender: "user", text: userMessage });
+
+  // If first message, rename chat title
+  if (currentChat.messages.length === 1) {
+    currentChat.title =
+      userMessage.slice(0, 25) + (userMessage.length > 25 ? "..." : "");
+    renderChatCards();
+  }
+
   userInputField.value = "";
-  saveChat();
+  saveAllChats();
 }
 
-// display the message //
+// === Display Message ===
 function displayMessage(text, type) {
   const messageDiv = document.createElement("div");
   messageDiv.classList.add("message", type);
@@ -64,42 +84,21 @@ function displayMessage(text, type) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// save the chat to local storage //
-function saveChat() {
-  const existingIndex = allChats.findIndex(
-    (chat) => chat.id === currentChat.id
-  );
+// === Load Chat Messages ===
+function loadChat(chat) {
+  chatBox.innerHTML = "";
+  chat.messages.forEach((msg) => {
+    displayMessage(
+      msg.text,
+      msg.sender === "user" ? "user-message" : "ai-message"
+    );
+  });
+}
 
-  if (existingIndex !== -1) {
-    allChats[existingIndex] = currentChat;
-  } else {
-    allChats.push([...currentChat]);
-  }
-
+// === Save All Chats to localStorage ===
+function saveAllChats() {
   localStorage.setItem("chatHistory", JSON.stringify(allChats));
 }
 
-// load the chat //
-function loadChat(chatArray) {
-  chatBox.innerHTML = "";
-  if (!chatArray) return;
-  chatArray.forEach((msg) => displayMessage(msg.text, "user-message"));
-  currentChat = chatArray;
-}
-
-// render the cards on reload of the page //
-window.addEventListener("DOMContentLoaded", () => {
-  if (allChats.length > 0) {
-    allChats.forEach((_, index) => {
-      const historyCard = document.createElement("div");
-      historyCard.classList.add("text-box");
-      historyCard.textContent = `Chat ${index + 1}`;
-      bodyContent.appendChild(historyCard);
-
-      historyCard.addEventListener("click", function () {
-        chatModalPage.style.display = "block";
-        loadChat(allChats[index]);
-      });
-    });
-  }
-});
+// === Render Cards on Page Load ===
+window.addEventListener("DOMContentLoaded", renderChatCards);
