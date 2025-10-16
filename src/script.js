@@ -1,148 +1,174 @@
-// Combined dom + script logic (self-contained)
-// - Fixes broken allowedTopics array
-// - Adds DOM element bindings, displayMessage, and event listeners
-// - Keeps getAIResponse/sendMessage logic
+// ============================
+// CHATBOT SCRIPT
+// ============================
 
-// ---- DOM elements & state ----
-const chatContainer = document.getElementById("chat-container");
-const chatHistory = document.getElementById("chat-history");
-const userInput = document.getElementById("user-input");
-const sendBtn = document.getElementById("send-btn");
-const newChatBtn = document.getElementById("new-chat-btn");
+document.addEventListener("DOMContentLoaded", () => {
 
-let currentChat = [];
-let chatCounter = 0;
-let chatSessionId = `chat_${Date.now()}_${chatCounter}`;
+    const newChatBtn = document.getElementById("newChatBtn");
+    const chatModal = document.getElementById("chatModal");
+    const closeModalButton = document.getElementById("closeModal");
+    const chatContainer = document.getElementById("chatContainer");
+    const userInput = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const bodyContent = document.querySelector(".history-grid");
 
-// ---- Utility: start a new chat ----
-function startNewChat() {
-  if (chatContainer) chatContainer.innerHTML = "";
-  currentChat = [];
-  chatCounter++;
-  chatSessionId = `chat_${Date.now()}_${chatCounter}`;
-  const li = document.createElement("li");
-  li.textContent = `Chat ${chatCounter}: New Session`;
-  if (chatHistory) chatHistory.appendChild(li);
-}
+    let currentChat = [];
+    let chatCounter = 0;
+    let chatSessionId = null; // Initially null
+    let allChats = JSON.parse(localStorage.getItem("chatHistory")) || [];
 
-// ---- Restriction: Only coding questions allowed ----
-function isCodingRelated(message) {
-    const allowedTopics = [
-        "code", "coding", "programming", "developer", "software",
-        "algorithm", "api", "debug", "bug", "function", "class", "html", "css", "javascript",
-        "python", "java", "c#", "c++ , "git", "bash", "powershell"
-    ];
-    return allowedTopics.some(topic => message.toLowerCase().includes(topic));
-}
-
-// ---- API CALL ----
-// UPDATED: Now returns the full data object
-async function getAIResponse(userMessage) {
-  try {
-    if (!isCodingRelated(userMessage)) {
-      // Return error object matching expected successful shape
-      return { reply: "🚫 I'm only able to answer coding-related questions. Please ask a programming question.", responseTime: "0.00" }; 
+    // ============================
+    // OPEN/CLOSE MODAL
+    // ============================
+    if (newChatBtn) {
+        newChatBtn.addEventListener("click", () => {
+            if (chatModal) chatModal.style.display = "flex";
+            startNewChat();
+        });
     }
 
-    const payload = {
-      message: userMessage,
-      sessionId: chatSessionId
-    };
+    if (closeModalButton) {
+        closeModalButton.addEventListener("click", () => {
+            if (chatModal) chatModal.style.display = "none";
+        });
+    }
 
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+    window.addEventListener("click", (e) => {
+        if (e.target === chatModal) chatModal.style.display = "none";
     });
 
-    if (!response.ok) throw new Error(`Server returned ${response.status}`);
-    const data = await response.json();
-    
-    // 🎯 Return the full data object, including 'reply' and 'responseTime'
-    return data; 
+    // ============================
+    // CHAT FUNCTIONS
+    // ============================
 
-  } catch (error) {
-    console.error("❌ Error:", error);
-    // Return structured error object for consistent handling in sendMessage
-    return { reply: "⚠️ Error connecting to the AI server.", responseTime: "N/A" };
-  }
-}
+    function startNewChat() {
+        if (!chatContainer) return;
+        chatContainer.innerHTML = "";
+        currentChat = [];
+        chatCounter = allChats.length + 1; // Increment based on existing chats
+        chatSessionId = `chat_${Date.now()}_${chatCounter}`;
 
-// ---- DOM: display messages ----
-function displayMessage(sender, content) {
-  if (!chatContainer) return;
+        const newChatEntry = {
+            id: chatSessionId,
+            title: `Chat #${chatCounter}`,
+            messages: []
+        };
 
-  const wrapper = document.createElement("div");
-  wrapper.classList.add(sender === "user" ? "user-message" : "ai-message");
-
-  let text = "";
-  // ai content may be an object { reply, responseTime } or a plain string
-  if (sender === "ai") {
-    if (typeof content === "string") {
-      text = content;
-    } else if (content && typeof content === "object" && "reply" in content) {
-      text = content.reply;
-      // optionally show responseTime somewhere
-    } else {
-      text = String(content);
+        allChats.push(newChatEntry);
+        saveAllChats();
+        renderChatCards();
     }
-  } else {
-    // user
-    text = String(content);
-  }
 
-  wrapper.textContent = text;
-  chatContainer.appendChild(wrapper);
-  // keep scroll at bottom
-  chatContainer.scrollTop = chatContainer.scrollHeight;
-}
+    function loadChat(chat) {
+        if (!chatContainer) return;
+        chatContainer.innerHTML = "";
+        currentChat = chat.messages;
+        chatSessionId = chat.id;
 
-// ---- SEND MESSAGE HANDLER ----
-async function sendMessage() {
-  if (!userInput) return;
-  const userMessage = userInput.value.trim();
-  if (!userMessage) return;
+        currentChat.forEach(msg => displayMessage(msg.sender, { reply: msg.text }));
 
-  displayMessage("user", userMessage);
-  currentChat.push({ sender: "user", text: userMessage });
-  userInput.value = "";
-
-  // Show typing indicator
-  const typingDiv = document.createElement("div");
-  typingDiv.classList.add("ai-message", "typing-indicator");
-  typingDiv.innerHTML = "<em>AI is typing...</em>";
-  chatContainer.appendChild(typingDiv);
-  chatContainer.scrollTop = chatContainer.scrollHeight;
-
-  // Get AI response
-  const aiReply = await getAIResponse(userMessage);
-
-  // Remove typing indicator and display AI message
-  typingDiv.remove();
-  displayMessage("ai", aiReply);
-  // store reply text normalized
-  if (aiReply && typeof aiReply === "object" && "reply" in aiReply) {
-    currentChat.push({ sender: "ai", text: aiReply.reply });
-  } else {
-    currentChat.push({ sender: "ai", text: String(aiReply) });
-  }
-}
-
-// ---- Event listeners ----
-if (sendBtn) {
-  sendBtn.addEventListener("click", sendMessage);
-}
-if (newChatBtn) {
-  newChatBtn.addEventListener("click", startNewChat);
-}
-if (userInput) {
-  userInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+        if (chatModal) chatModal.style.display = "flex";
     }
-  });
-}
 
-// optional: initialize first chat session
-startNewChat();
+    function saveAllChats() {
+        localStorage.setItem("chatHistory", JSON.stringify(allChats));
+    }
+
+    function renderChatCards() {
+        if (!bodyContent) return;
+
+        // Remove old cards
+        document.querySelectorAll(".text-box").forEach(el => el.remove());
+
+        allChats.forEach(chat => {
+            const card = document.createElement("div");
+            card.classList.add("text-box");
+            card.textContent = chat.title;
+            bodyContent.appendChild(card);
+
+            card.addEventListener("click", () => loadChat(chat));
+        });
+    }
+
+    // ============================
+    // MESSAGE HANDLING
+    // ============================
+    function displayMessage(sender, content) {
+        if (!chatContainer) return;
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message", sender === "user" ? "user-message" : "ai-message");
+
+        let text = content.reply ?? String(content);
+        text = text.replace(/```([\s\S]*?)```/g, (match, code) => {
+            code = code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            return `<pre><code>${code.trim()}</code></pre>`;
+        });
+        text = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        messageDiv.innerHTML = `<strong>${sender === "user" ? "You" : "AI"}:</strong> ${text}`;
+
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function sendMessage() {
+        if (!userInput) return;
+        const userMessage = userInput.value.trim();
+        if (!userMessage) return;
+
+        displayMessage("user", userMessage);
+        currentChat.push({ sender: "user", text: userMessage });
+        userInput.value = "";
+
+        const typingDiv = document.createElement("div");
+        typingDiv.classList.add("message", "ai-message", "typing-indicator");
+        typingDiv.innerHTML = "<em>AI is typing...</em>";
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        const aiReply = await getAIResponse(userMessage);
+        typingDiv.remove();
+        displayMessage("ai", aiReply);
+        currentChat.push({ sender: "ai", text: aiReply.reply });
+
+        // Update stored chat
+        const chatIndex = allChats.findIndex(c => c.id === chatSessionId);
+        if (chatIndex > -1) {
+            allChats[chatIndex].messages = currentChat;
+            saveAllChats();
+        }
+    }
+
+    async function getAIResponse(userMessage) {
+        if (!isCodingRelated(userMessage)) {
+            return { reply: "🚫 I'm only able to answer coding-related questions." };
+        }
+        try {
+            const response = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userMessage, sessionId: chatSessionId })
+            });
+            const data = await response.json();
+            return { reply: data.reply ?? "⚠️ No response from AI." };
+        } catch {
+            return { reply: "⚠️ Error connecting to the AI server." };
+        }
+    }
+
+    function isCodingRelated(message) {
+        const allowedTopics = ["code","coding","programming","developer","software","algorithm","api","debug","bug","function","class","html","css","javascript","python","java","c#","c++","git","bash","powershell"];
+        return allowedTopics.some(topic => message.toLowerCase().includes(topic));
+    }
+
+    // ============================
+    // EVENT LISTENERS
+    // ============================
+    if (sendBtn) sendBtn.addEventListener("click", sendMessage);
+    if (userInput) userInput.addEventListener("keypress", e => {
+        if (e.key === "Enter") { e.preventDefault(); sendMessage(); }
+    });
+
+    // Render chat cards on load (without creating new chat)
+    renderChatCards();
+
+});

@@ -7,22 +7,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Code Breaker</h1>
     
     <div class="main-content">
-        <div class="history-grid">
-            <div class="text-box">
-                <div class="text-box-title">Previous Chat #1</div>
-                <div class="text-box-preview">This is a preview of your previous conversation about debugging React components...</div>
-            </div>
-            <div class="text-box">
-                <div class="text-box-title">Previous Chat #2</div>
-                <div class="text-box-preview">Discussion about optimizing API calls and improving performance in Node.js...</div>
-            </div>
-            <div class="text-box">
-                <div class="text-box-title">Previous Chat #3</div>
-                <div class="text-box-preview">Fixing CSS layout issues and implementing responsive design patterns...</div>
-            </div>
+        <h1>Code Breaker</h1>
+        <div class="history-grid" id="historyGrid">
+            <!-- Chat cards will be rendered dynamically here -->
         </div>
     </div>
 
@@ -41,6 +30,6 @@
         </div>
     </div>
 
-    
+    <script src="script.js" type="module"></script>
 </body>
 </html>
