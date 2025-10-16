@@ -1,0 +1,7 @@
+# Secret API Keys and Configuration
+.env
+*.json # WARNING: This ignores ALL JSON files. Be specific if you have other JSON files you need.
+ninth-psyche-475111-m6-7b527aebbe7b.json
+
+# Dependencies
+/node_modules

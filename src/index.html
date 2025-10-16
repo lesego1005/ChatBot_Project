@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Breaker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div class="main-content">
+        <h1>Code Breaker</h1>
+        <div class="history-grid" id="historyGrid">
+            <!-- Chat cards will be rendered dynamically here -->
+        </div>
+    </div>
+
+    <button class="new-chat-btn" id="newChatBtn">+ Start New Chat</button>
+
+    <!-- Modal for chat -->
+    <div id="chatModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>Code Breaker</h2>
+            <div class="chat-container" id="chatContainer"></div>
+            <div class="input-container">
+                <input type="text" id="userInput" placeholder="Ask me anything..." autocomplete="off">
+                <button id="sendBtn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js" type="module"></script>
+</body>
+</html>
