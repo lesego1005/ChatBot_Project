@@ -27,15 +27,12 @@ function startNewChat() {
 
 // ---- Restriction: Only coding questions allowed ----
 function isCodingRelated(message) {
-  // cleaned and consistent list
-  const allowedTopics = [
-    "code", "coding", "programming", "developer", "software",
-    "algorithm", "api", "debug", "bug", "function", "class", "html", "css", "javascript",
-    "python", "java", "c#", "c++", "git", "bash", "powershell", "node", "react", "vue", "angular"
-  ];
-  if (!message || typeof message !== "string") return false;
-  const lower = message.toLowerCase();
-  return allowedTopics.some(topic => lower.includes(topic));
+    const allowedTopics = [
+        "code", "coding", "programming", "developer", "software",
+        "algorithm", "api", "debug", "bug", "function", "class", "html", "css", "javascript",
+        "python", "java", "c#", "c++ , "git", "bash", "powershell"
+    ];
+    return allowedTopics.some(topic => message.toLowerCase().includes(topic));
 }
 
 // ---- API CALL ----
