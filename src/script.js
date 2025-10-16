@@ -14,8 +14,8 @@ function startNewChat() {
 function isCodingRelated(message) {
     const allowedTopics = [
         "code", "coding", "programming", "developer", "software",
-        "algorithm", "api", "debug" , "bug" , "function" , "class" , "html", "css", "javascript",
-        "python", "java", "c#", "c++
+        "algorithm", "api", "debug", "bug", "function", "class", "html", "css", "javascript",
+        "python", "java", "c#", "c++ , "git", "bash", "powershell"
     ];
     return allowedTopics.some(topic => message.toLowerCase().includes(topic));
 }
