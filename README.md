@@ -1,6 +1,6 @@
 # Code Breaker – Your AI Coding Companion
 
-> *Breaking down code barriers, one line at a time.*
+> *Breaking down code barriers, one line at a time ,k.*
 
 ## About Code Breaker
 
