@@ -156,10 +156,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function isCodingRelated(message) {
-        const allowedTopics = ["code","coding","programming","developer","software","algorithm","api","debug","bug","function","class","html","css","javascript","python","java","c#","c++","git","bash","powershell"];
+        const allowedTopics = ["code","coding","programming","developer","software","algorithm","api","debug","bug","function","class","html","css","javascript","python","java","c#","c++","git","bash","powershell","sql","ruby","react","scss","bootstrap","c","golang","typescript","swift","php","r"];
         return allowedTopics.some(topic => message.toLowerCase().includes(topic));
     }
 
+
+    
     // ============================
     // EVENT LISTENERS
     // ============================
