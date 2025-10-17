@@ -54,6 +54,16 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           auth-type: 'service-principal'
 
+      - name: Set Web App Configuration
+        uses: azure/CLI@v1
+        with:
+          azcliversion: '2.55.0'
+          inlineScript: |
+            az webapp config appsettings set \
+              --name codebreakerchatbot \
+              --resource-group Chatbot \
+              --settings GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
