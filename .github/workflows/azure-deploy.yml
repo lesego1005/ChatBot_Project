@@ -36,7 +36,7 @@ jobs:
     runs-on: windows-latest
     needs: build
     permissions:
-      contents: read
+      contents: read  # remove id-token write for SERVICE_PRINCIPAL
 
     steps:
       - name: Download artifact
@@ -49,9 +49,9 @@ jobs:
         with:
           auth-type: SERVICE_PRINCIPAL
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
