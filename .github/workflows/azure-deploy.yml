@@ -10,23 +10,22 @@ jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read # Required for actions/checkout
+      contents: read
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
           node-version: '22.x'
 
-      - name: Install dependencies and build
+      - name: npm install, build, and test
         run: |
           npm install
           npm run build --if-present
           npm run test --if-present
-
+      
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
@@ -37,35 +36,29 @@ jobs:
     runs-on: windows-latest
     needs: build
     permissions:
-      id-token: write
       contents: read
 
     steps:
-      - name: Download build artifact
+      - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
-
-      - name: Azure Login
+      
+      - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          auth-type: 'service-principal'
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E16C6DFB1798467AA4E2F5A1D627359E }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BBB083891B11438E9FCF38A3AC92C2F7 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_98CE72ECFCA64F71BC3B14C1949E4C7A }}
+          auth-type: 'SERVICE_PRINCIPAL'
 
-      - name: Set Web App Configuration
-        uses: azure/CLI@v1
-        with:
-          azcliversion: '2.55.0'
-          inlineScript: |
-            az webapp config appsettings set \
-              --name codebreakerchatbot \
-              --resource-group Chatbot \
-              --settings GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
+      - name: Set environment variables
+        run: |
+          echo "GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}" >> $GITHUB_ENV
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
         with:
           app-name: 'codebreakerchatbot'
           slot-name: 'Production'
