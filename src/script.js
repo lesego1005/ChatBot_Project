@@ -155,10 +155,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function isCodingRelated(message) {
-        const allowedTopics = ["code","coding","programming","developer","software","algorithm","api","debug","bug","function","class","html","css","javascript","python","java","c#","c++","git","bash","powershell","sql","ruby","react","scss","bootstrap","c","golang","typescript","swift","php","r"];
-        return allowedTopics.some(topic => message.toLowerCase().includes(topic));
-    }
+  function isCodingRelated(message) {
+    const allowedTopics = [
+        "code","coding","programming","developer","software","algorithm","api",
+        "debug","bug","function","class","html","css","javascript","python",
+        "java","c#","c++","git","bash","powershell","sql","ruby","react","scss",
+        "bootstrap","c","golang","typescript","swift","php","r"
+    ];
+
+    // Convert message to lowercase and remove punctuation for better matching
+    const normalizedMsg = message.toLowerCase().replace(/[^\w\s#\+]/g, "");
+
+    // Split message into words for exact keyword match
+    const words = normalizedMsg.split(/\s+/);
+
+    // Check if at least one allowed topic is present
+    const containsAllowedTopic = words.some(word => allowedTopics.includes(word));
+
+    return containsAllowedTopic;
+}
 
 
     
