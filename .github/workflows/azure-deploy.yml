@@ -9,14 +9,11 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    permissions:
-      contents: read
-
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '22.x'
@@ -24,10 +21,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build (if applicable)
+      - name: Build app
         run: npm run build --if-present
 
-      - name: Test (if applicable)
+      - name: Test app
         run: npm run test --if-present
 
       - name: Upload artifact for deployment
@@ -37,21 +34,18 @@ jobs:
           path: .
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: build
-    permissions:
-      contents: read
-
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: node-app
 
-      - name: Azure login via Service Principal
+      - name: Login to Azure
         uses: azure/login@v2
         with:
-          auth-type: 'SERVICE_PRINCIPAL'
+          auth-type: service-principal
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -60,10 +54,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'codebreakerchatbot'  # Replace with your Azure Web App name
+          app-name: 'codebreakerchatbot'
           slot-name: 'Production'
           package: .
-
-      - name: Set environment variables in Azure
-        run: |
-          az webapp config appsettings set --name codebreakerchatbot --resource-group Chatbot --settings GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
